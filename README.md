@@ -4,7 +4,7 @@ Bardziej szczegółowy opis założeń: [wizja](docs/vision.md)
 
 # Struktura
 ```text
-campus-ai-assistant/
+steam-ai-advisor/
 ├── README.md
 ├── docs/
 │   ├── vision.md
