@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="SteamAdvisor.App/SteamAdvisor.App.csproj" />
+  <Project Path="SteamAdvisor.McpServer/SteamAdvisor.McpServer.csproj" />
+</Solution>
