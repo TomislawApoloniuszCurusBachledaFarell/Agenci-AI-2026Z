@@ -484,3 +484,5 @@ $RECYCLE.BIN/
 # Wyniki ewaluacji Shelly.Evaluation
 10-Shelly.Evaluation/eval-results/
 10-Shelly.Evaluation/report.html
+
+SteamAdvisor.McpServer/user_hardware.json
