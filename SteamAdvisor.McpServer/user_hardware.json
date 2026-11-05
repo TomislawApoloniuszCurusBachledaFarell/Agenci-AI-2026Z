@@ -2,7 +2,7 @@
   "cpu": "Intel(R) Core(TM) Ultra 5 125H",
   "gpu": "Intel(R) Arc(TM) Graphics",
   "ramGb": 15,
-  "storageAvailableGb": 316,
+  "storageAvailableGb": 318,
   "os": "Microsoft Windows 10.0.26200",
-  "detectedAtUtc": "2026-11-05T13:33:26.8833463Z"
+  "detectedAtUtc": "2026-11-05T14:50:50.5952592Z"
 }

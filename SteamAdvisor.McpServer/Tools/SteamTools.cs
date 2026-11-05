@@ -15,9 +15,9 @@ public class SteamTools
     };
 
     [McpServerTool(Name = "get_game_requirements")]
-    [Description("Pobiera minimalne i zalecane wymagania sprzętowe gry z platformy Steam na podstawie jej nazwy (np. 'Cyberpunk 2077', 'The Witcher 3', 'Elden Ring').")]
+    [Description("Pobiera minimalne i zalecane wymagania sprzętowe gry z platformy Steam na podstawie jej nazwy (np. 'Cyberpunk 2077', 'The Witcher 3', 'Elden Ring'). Jeżeli gra nie istnieje, informuje o tym")]
     public static async Task<string> GetGameRequirementsAsync(
-        [Description("Tytuł gry na platformie Steam, np. 'Cyberpunk 2077', 'The Witcher 3: Wild Hunt', 'Elden Ring'.")] string gameName)
+        [Description("Tytuł gry na platformie Steam, np. 'Cyberpunk 2077', 'The Witcher 3: Wild Hunt', 'Elden Ring'. Jeżeli gra nie istnieje, informuje o tym")] string gameName)
     {
         if (string.IsNullOrWhiteSpace(gameName))
         {
@@ -109,10 +109,10 @@ public class SteamTools
     }
 
     [McpServerTool(Name = "get_game_price_and_status")]
-    [Description("Pobiera bazową i aktualną cenę gry ze Steam oraz procent zniżki, jeśli gra jest na promocji.")]
+    [Description("Pobiera bazową i aktualną cenę gry ze Steam oraz procent zniżki, jeśli gra jest na promocji. Jeżeli gra nie istnieje, informuje o tym")]
     public static async Task<string> GetGamePriceAndStatusAsync(
-        [Description("Tytuł gry na platformie Steam, np. 'Cyberpunk 2077', 'The Witcher 3: Wild Hunt', 'Elden Ring'.")] string gameName,
-        [Description("Dwuliterowy kod kraju (ISO 3166-1 alpha-2), np. 'PL' (Polska - PLN), 'US' (USA - USD), 'DE' (Niemcy - EUR). Domyślnie 'PL'.")] string countryCode = "PL")
+        [Description("Tytuł gry na platformie Steam, np. 'Cyberpunk 2077', 'The Witcher 3: Wild Hunt', 'Elden Ring'. Jeżeli gra nie istnieje, informuje o tym")] string gameName,
+        [Description("Dwuliterowy kod kraju (ISO 3166-1 alpha-2), np. 'PL' (Polska - PLN), 'US' (USA - USD), 'DE' (Niemcy - EUR). Domyślnie 'PL'. Jeżeli gra nie istnieje, informuje o tym")] string countryCode = "PL")
     {
         if (string.IsNullOrWhiteSpace(gameName))
         {

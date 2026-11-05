@@ -9,6 +9,7 @@ namespace SteamAdvisor.App.Configuration;
 public static class ChatClientFactory
 {
     private const string envVarName = "GEMINI_API_KEY_PECHA";
+    private const string PoznanApiKeyEnvVar = "POZNAN_API_KEY";
 
     public static IChatClient Create(IConfiguration configuration)
     {
@@ -19,6 +20,7 @@ public static class ChatClientFactory
         {
             "ollama" => CreateOllamaClient(configuration),
             "gemini" => CreateGeminiClient(configuration),
+            "poznan" => CreatePoznanClient(configuration),
             _ => throw new InvalidOperationException($"Nieznany provider: '{provider}'.")
         };
     }
@@ -50,6 +52,26 @@ public static class ChatClientFactory
             Endpoint = new Uri(endpoint),
             NetworkTimeout = TimeSpan.FromSeconds(120),
             Transport = new HttpClientPipelineTransport(new HttpClient(new GeminiThoughtSignatureHandler()))
+        };
+
+        var chatClient = new OpenAI.Chat.ChatClient(model, new ApiKeyCredential(apiKey), clientOptions);
+        return chatClient.AsIChatClient();
+    }
+
+    private static IChatClient CreatePoznanClient(IConfiguration configuration)
+    {
+        var apiKey = Environment.GetEnvironmentVariable(PoznanApiKeyEnvVar, EnvironmentVariableTarget.User)
+            ?? Environment.GetEnvironmentVariable(PoznanApiKeyEnvVar)
+            ?? configuration[PoznanApiKeyEnvVar]
+            ?? throw new InvalidOperationException($"Brak zmiennej środowiskowej {PoznanApiKeyEnvVar}.");
+
+        var model = configuration["AI:Poznan:Model"] ?? "gpt-oss_120b";
+        var endpoint = configuration["AI:Poznan:Endpoint"] ?? "https://llm.hpc.psnc.pl/v1";
+
+        var clientOptions = new OpenAIClientOptions
+        {
+            Endpoint = new Uri(endpoint),
+            NetworkTimeout = TimeSpan.FromSeconds(120)
         };
 
         var chatClient = new OpenAI.Chat.ChatClient(model, new ApiKeyCredential(apiKey), clientOptions);

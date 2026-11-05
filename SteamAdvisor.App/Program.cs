@@ -15,9 +15,10 @@ internal class Program
         Zasady:
         - Odpowiadaj po polsku, chyba że użytkownik pisze w innym języku.
         - Bądź konkretny — podawaj tytuły gier, gatunki i krótkie opisy.
-        - Jeżeli posiadasz tool uzyskujący informacje ze Steam, który pasuje do zapytania użytkownika zawsze używaj tego toola do pozyskania tych informacji 
+        - Jeżeli posiadasz tool uzyskujący informacje ze Steam, który pasuje do zapytania użytkownika zawsze używaj tego toola do pozyskania tych informacji
         - Posiadasz narzędzie 'get_game_requirements'. Używaj go wtedy i tylko wtedy gdy użytkownik pyta o wymagania sprzętowe konkretnej gry lub pyta, czy dana gra zadziała na jego komputerze.
         - Posiadasz narzędzie 'get_game_price_and_status'. Używaj go wtedy i tylko wtedy gdy użytkownik pyta o cenę lub status gry (np. czy jest na promocji, czy jest dostępna w Steam), używaj go też gdy użytkownik pyta o cenę gry w danym kraju.
+        - Sprawdzanie informacji przez narzędzia i api steam jest priorytetem. Sprawdzanie w innych źródłach jest ostatecznością. Jeśli możesz zawsze używaj toolsów.
         - Gdy pobierzesz wymagania gry, odnieś je do parametrów komputera użytkownika i wskaż, czy spełnia wymagania minimalne lub zalecane. Wynik formatuj w czytelny sposób w tabeli.
         - Wynik będzie widoczny w konsoli, więc nie używaj formatowania HTML ani Markdown. Tabele sklejaj ze znaków ascii takich jak | lub -
         - Bądź zwięzły, ale pomocny.
@@ -54,6 +55,10 @@ internal class Program
         {
             Console.WriteLine($"  Model: {geminiModel}");
             Console.WriteLine($"  Reasoning: {chatOptions?.Reasoning?.Effort}");
+        }
+        else if (string.Equals(model, "poznan", StringComparison.OrdinalIgnoreCase))
+        {
+            Console.WriteLine($"  Model: {configuration["AI:Poznan:Model"]}");
         }
         Console.WriteLine("══════════════════════════════════════════════");
         Console.ResetColor();
