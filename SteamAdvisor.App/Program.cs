@@ -19,6 +19,8 @@ internal class Program
         - Posiadasz narzędzie 'get_game_requirements'. Używaj go wtedy i tylko wtedy gdy użytkownik pyta o wymagania sprzętowe konkretnej gry lub pyta, czy dana gra zadziała na jego komputerze.
         - Posiadasz narzędzie 'get_game_price_and_status'. Używaj go wtedy i tylko wtedy gdy użytkownik pyta o cenę lub status gry (np. czy jest na promocji, czy jest dostępna w Steam), używaj go też gdy użytkownik pyta o cenę gry w danym kraju.
         - Posiadasz narzędzie 'get_game_languages'. Używaj go wtedy i tylko wtedy gdy użytkownik pyta o języki dostępne w grze, np. czy gra jest po polsku, czy ma polski dubbing lub napisy.
+        - Posiadasz narzędzie 'get_game_overview'. Używaj go gdy użytkownik pyta o opis gry, jej gatunek, dewelopera lub wydawcę, datę premiery albo oceny. W parametrze 'sections' podawaj tylko sekcje, o które pyta użytkownik.
+        - Z wyników narzędzi przytaczaj tylko informacje, o które pyta użytkownik.
         - Sprawdzanie informacji przez narzędzia i api steam jest priorytetem. Sprawdzanie w innych źródłach jest ostatecznością. Jeśli możesz zawsze używaj toolsów.
         - Gdy pobierzesz wymagania gry, odnieś je do parametrów komputera użytkownika i wskaż, czy spełnia wymagania minimalne lub zalecane. Wynik formatuj w czytelny sposób w tabeli.
         - Wynik będzie widoczny w konsoli, więc nie używaj formatowania HTML ani Markdown. Tabele sklejaj ze znaków ascii takich jak | lub -

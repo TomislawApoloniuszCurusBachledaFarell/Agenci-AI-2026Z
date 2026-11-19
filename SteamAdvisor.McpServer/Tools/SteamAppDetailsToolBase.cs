@@ -20,7 +20,14 @@ public abstract class SteamAppDetailsToolBase
 
     protected abstract string FormatResult(SteamGame game, JsonElement data);
 
-    protected async Task<string> ExecuteAsync(string gameName, string? countryCode, CancellationToken cancellationToken)
+    protected Task<string> ExecuteAsync(string gameName, string? countryCode, CancellationToken cancellationToken)
+        => ExecuteAsync(gameName, countryCode, FormatResult, cancellationToken);
+
+    protected async Task<string> ExecuteAsync(
+        string gameName,
+        string? countryCode,
+        Func<SteamGame, JsonElement, string> formatResult,
+        CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(gameName))
         {
@@ -56,7 +63,7 @@ public abstract class SteamAppDetailsToolBase
             {
                 return $"Nie udało się pobrać {OperationName} dla gry '{game.Name}' (AppID: {game.AppId}).";
             }
-            return FormatResult(game, data);
+            return formatResult(game, data);
         }
         catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
         {
