@@ -1,4 +1,6 @@
+using System.Net;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace SteamAdvisor.McpServer.Tools;
 
@@ -87,5 +89,35 @@ public abstract class SteamAppDetailsToolBase
         var name = firstItem.GetProperty("name").GetString() ?? gameName;
 
         return (new SteamGame(appId, name), null);
+    }
+
+    /// <summary>
+    /// Czyści formatowanie HTML zwracane przez Steam (wymagania, języki itp.) do zwykłego tekstu.
+    /// </summary>
+    protected static string CleanHtml(string? html)
+    {
+        if (string.IsNullOrWhiteSpace(html))
+            return string.Empty;
+
+        // Zamiana znaczników podziału wiersza i list na czysty tekst
+        var text = html
+            .Replace("<br>", "\n", StringComparison.OrdinalIgnoreCase)
+            .Replace("<br/>", "\n", StringComparison.OrdinalIgnoreCase)
+            .Replace("<br />", "\n", StringComparison.OrdinalIgnoreCase)
+            .Replace("</li>", "\n", StringComparison.OrdinalIgnoreCase)
+            .Replace("<li>", "• ", StringComparison.OrdinalIgnoreCase)
+            .Replace("<strong>", "", StringComparison.OrdinalIgnoreCase)
+            .Replace("</strong>", "", StringComparison.OrdinalIgnoreCase);
+
+        // Usunięcie pozostałych tagów HTML
+        text = Regex.Replace(text, @"<[^>]+>", string.Empty);
+
+        // Dekodowanie encji HTML (&quot;, &amp;, itp.)
+        text = WebUtility.HtmlDecode(text);
+
+        // Usunięcie nadmiarowych pustych linii
+        text = Regex.Replace(text, @"\n{3,}", "\n\n");
+
+        return text.Trim();
     }
 }

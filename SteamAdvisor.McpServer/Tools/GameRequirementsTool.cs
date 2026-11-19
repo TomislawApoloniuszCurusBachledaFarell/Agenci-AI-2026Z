@@ -1,8 +1,6 @@
 using System.ComponentModel;
-using System.Net;
 using System.Text;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using ModelContextProtocol.Server;
 
 namespace SteamAdvisor.McpServer.Tools;
@@ -57,35 +55,5 @@ public sealed class GameRequirementsTool : SteamAppDetailsToolBase
         }
 
         return result.ToString().TrimEnd();
-    }
-
-    /// <summary>
-    /// Czyści formatowanie HTML zwracane przez Steam w opisach wymagań.
-    /// </summary>
-    private static string CleanHtml(string? html)
-    {
-        if (string.IsNullOrWhiteSpace(html))
-            return string.Empty;
-
-        // Zamiana znaczników podziału wiersza i list na czysty tekst
-        var text = html
-            .Replace("<br>", "\n", StringComparison.OrdinalIgnoreCase)
-            .Replace("<br/>", "\n", StringComparison.OrdinalIgnoreCase)
-            .Replace("<br />", "\n", StringComparison.OrdinalIgnoreCase)
-            .Replace("</li>", "\n", StringComparison.OrdinalIgnoreCase)
-            .Replace("<li>", "• ", StringComparison.OrdinalIgnoreCase)
-            .Replace("<strong>", "", StringComparison.OrdinalIgnoreCase)
-            .Replace("</strong>", "", StringComparison.OrdinalIgnoreCase);
-
-        // Usunięcie pozostałych tagów HTML
-        text = Regex.Replace(text, @"<[^>]+>", string.Empty);
-
-        // Dekodowanie encji HTML (&quot;, &amp;, itp.)
-        text = WebUtility.HtmlDecode(text);
-
-        // Usunięcie nadmiarowych pustych linii
-        text = Regex.Replace(text, @"\n{3,}", "\n\n");
-
-        return text.Trim();
     }
 }

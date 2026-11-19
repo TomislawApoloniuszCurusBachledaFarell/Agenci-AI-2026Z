@@ -19,7 +19,8 @@ builder.Services.AddMcpServer(options =>
 .WithStdioServerTransport()
 .WithResources<UserHardwareResource>()
 .WithTools<GameRequirementsTool>()
-.WithTools<GamePriceTool>();
+.WithTools<GamePriceTool>()
+.WithTools<GameLanguagesTool>();
 
 var app = builder.Build();
 await app.RunAsync();
