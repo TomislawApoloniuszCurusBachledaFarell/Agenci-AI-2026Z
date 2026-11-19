@@ -1,8 +1,10 @@
-﻿using Microsoft.Extensions.AI;
+﻿using System.Text;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol;
 using SteamAdvisor.App.Configuration;
+using SteamAdvisor.App.Skills;
 
 namespace SteamAdvisor.App;
 
@@ -22,8 +24,7 @@ internal class Program
         - Posiadasz narzędzie 'get_game_overview'. Używaj go gdy użytkownik pyta o opis gry, jej gatunek, dewelopera lub wydawcę, datę premiery albo oceny. W parametrze 'sections' podawaj tylko sekcje, o które pyta użytkownik.
         - Z wyników narzędzi przytaczaj tylko informacje, o które pyta użytkownik.
         - Sprawdzanie informacji przez narzędzia i api steam jest priorytetem. Sprawdzanie w innych źródłach jest ostatecznością. Jeśli możesz zawsze używaj toolsów.
-        - Gdy pobierzesz wymagania gry, odnieś je do parametrów komputera użytkownika i wskaż, czy spełnia wymagania minimalne lub zalecane. Wynik formatuj w czytelny sposób w tabeli.
-        - Wynik będzie widoczny w konsoli, więc nie używaj formatowania HTML ani Markdown. Tabele sklejaj ze znaków ascii takich jak | lub -
+        - Gdy pobierzesz wymagania gry, odnieś je do parametrów komputera użytkownika i wskaż, czy spełnia wymagania minimalne lub zalecane.
         - Bądź zwięzły, ale pomocny.
         """;
 
@@ -96,9 +97,6 @@ internal class Program
                 chatOptions ??= new ChatOptions();
                 chatOptions.Tools = mcpTools.Cast<AITool>().ToList();
             }
-            chatClient = chatClient.AsBuilder()
-                .UseFunctionInvocation()
-                .Build();
         }
         catch (Exception ex)
         {
@@ -108,7 +106,25 @@ internal class Program
             Console.WriteLine();
         }
 
+        var skills = new SkillRegistry()
+            .Register(new TableFormattingSkill())
+            .Register(new MarkdownCleanupSkill())
+            .Register(new GameTitleSkill());
+        chatOptions ??= new ChatOptions();
+        var tools = chatOptions.Tools?.ToList() ?? [];
+        tools.AddRange(skills.Tools);
+        chatOptions.Tools = tools;
+
+        chatClient = chatClient.AsBuilder()
+            .UseFunctionInvocation()
+            .Build();
+
         var fullSystemPrompt = SystemPrompt;
+        var skillPrompt = skills.BuildPromptSection();
+        if (!string.IsNullOrWhiteSpace(skillPrompt))
+        {
+            fullSystemPrompt += $"\n\n{skillPrompt}";
+        }
         if (!string.IsNullOrWhiteSpace(userHardware))
         {
             fullSystemPrompt += $"\n\nSpecyfikacja komputera użytkownika:\n{userHardware}\n\nUwzględniaj powyższe parametry sprzętowe przy rekomendowaniu gier oraz ocenie, czy dana gra zadziała na tym sprzęcie.";
@@ -158,6 +174,12 @@ internal class Program
                     Console.ForegroundColor = ConsoleColor.DarkCyan;
                     foreach (var tc in toolCalls)
                     {
+                        if (skills.IsSkill(tc.Name))
+                        {
+                            Console.WriteLine($"  used: {tc.Name}");
+                            continue;
+                        }
+
                         var argsText = tc.Arguments != null
                             ? string.Join(", ", tc.Arguments.Select(kv => $"{kv.Key}=\"{kv.Value}\""))
                             : "";
@@ -166,7 +188,7 @@ internal class Program
                     Console.ResetColor();
                 }
 
-                Console.WriteLine(response.Text);
+                Console.WriteLine(WithExactSkillTables(response, toolCalls));
                 messages.AddRange(response.Messages);
             }
             catch (Exception ex)
@@ -182,5 +204,81 @@ internal class Program
             }
             Console.WriteLine();
         }
+    }
+
+    private static string WithExactSkillTables(ChatResponse response, IReadOnlyList<FunctionCallContent> toolCalls)
+    {
+        var resultsByCallId = response.Messages
+            .SelectMany(message => message.Contents)
+            .OfType<FunctionResultContent>()
+            .Where(result => result.CallId is not null)
+            .GroupBy(result => result.CallId!)
+            .ToDictionary(group => group.Key, group => group.Last().Result);
+
+        var tables = new List<string>();
+        foreach (var call in toolCalls)
+        {
+            if (!string.Equals(call.Name, "table_formatting", StringComparison.Ordinal) || call.CallId is null)
+                continue;
+
+            if (resultsByCallId.TryGetValue(call.CallId, out var result) && result is not null)
+                tables.Add(result.ToString() ?? string.Empty);
+        }
+
+        if (tables.Count == 0)
+            return response.Text ?? string.Empty;
+
+        return ReplaceTables(response.Text ?? string.Empty, tables);
+    }
+
+    private static string ReplaceTables(string answer, IReadOnlyList<string> tables)
+    {
+        var lines = answer.Replace("\r\n", "\n", StringComparison.Ordinal).Replace('\r', '\n').Split('\n');
+        var output = new StringBuilder();
+        var tableIndex = 0;
+        var lineIndex = 0;
+
+        while (lineIndex < lines.Length)
+        {
+            if (tableIndex < tables.Count && IsTableLine(lines[lineIndex]))
+            {
+                while (lineIndex < lines.Length && IsTableLine(lines[lineIndex]))
+                    lineIndex++;
+
+                while (lineIndex < lines.Length && string.IsNullOrWhiteSpace(lines[lineIndex])
+                       && lineIndex + 1 < lines.Length && IsTableLine(lines[lineIndex + 1]))
+                {
+                    lineIndex++;
+                }
+
+                output.AppendLine(tables[tableIndex].TrimEnd('\r', '\n'));
+                tableIndex++;
+                continue;
+            }
+
+            output.AppendLine(lines[lineIndex]);
+            lineIndex++;
+        }
+
+        while (tableIndex < tables.Count)
+        {
+            output.AppendLine();
+            output.AppendLine(tables[tableIndex].TrimEnd('\r', '\n'));
+            tableIndex++;
+        }
+
+        return output.ToString().TrimEnd('\r', '\n');
+    }
+
+    private static bool IsTableLine(string line)
+    {
+        var trimmed = line.Trim();
+        if (trimmed.Length == 0)
+            return false;
+
+        if (trimmed.Contains('|'))
+            return true;
+
+        return trimmed.Length >= 3 && trimmed.All(character => character is '-' or '+' or ' ');
     }
 }
