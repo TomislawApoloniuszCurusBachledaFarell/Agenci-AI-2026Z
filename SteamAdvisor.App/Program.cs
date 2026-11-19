@@ -68,15 +68,16 @@ internal class Program
         string? userHardware = null;
         try
         {
-            var serverDll = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "SteamAdvisor.McpServer", "bin", "Debug", "net10.0", "SteamAdvisor.McpServer.dll"));
-            var serverProj = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "SteamAdvisor.McpServer"));
+            var serverDll = configuration["Mcp:ServerPath"]
+                 ?? Path.Combine(AppContext.BaseDirectory, "SteamAdvisor.McpServer.dll");
+
+            if (!File.Exists(serverDll))
+                throw new FileNotFoundException($"Nie znaleziono serwera MCP: {serverDll}");
 
             var transportOptions = new StdioClientTransportOptions
             {
                 Command = "dotnet",
-                Arguments = File.Exists(serverDll)
-                    ? new List<string> { serverDll }
-                    : new List<string> { "run", "--project", serverProj, "--no-build" }
+                Arguments = [serverDll]
             };
 
             var transport = new StdioClientTransport(transportOptions);

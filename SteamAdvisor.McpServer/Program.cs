@@ -18,7 +18,8 @@ builder.Services.AddMcpServer(options =>
 })
 .WithStdioServerTransport()
 .WithResources<UserHardwareResource>()
-.WithTools<SteamTools>();
+.WithTools<GameRequirementsTool>()
+.WithTools<GamePriceTool>();
 
 var app = builder.Build();
 await app.RunAsync();
